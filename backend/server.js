@@ -1,13 +1,15 @@
-const express = require('express');
-const cors = require('cors');
-const mongoose = require('mongoose');
-require('dotenv').config();
+import express from 'express';
+import cors from 'cors';
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
 
-// Route imports
-const authRoutes = require('./routes/authRoutes');
-const propertyRoutes = require('./routes/propertyRoutes');
-const bookingRoutes = require('./routes/bookingRoutes');
-const adminRoutes = require('./routes/adminRoutes');
+// Route imports (ensure the .js extension is included for ES modules)
+import authRoutes from './routes/authRoutes.js';
+import propertyRoutes from './routes/propertyRoutes.js';
+import bookingRoutes from './routes/bookingRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
+
+dotenv.config();
 
 const app = express();
 
@@ -17,11 +19,10 @@ const allowedOrigins = [
   'http://localhost:3000',
   'https://house-rent-jaydip18.vercel.app',
   process.env.CLIENT_URL
-].filter(Boolean); // removes any undefined values if process.env.CLIENT_URL is not set
+].filter(Boolean);
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow server-to-server, curl, Postman, or defined origins
     if (!origin || allowedOrigins.includes(origin) || allowedOrigins.some(o => origin.startsWith(o))) {
       return callback(null, true);
     }
@@ -47,7 +48,7 @@ app.use('/api/properties', propertyRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/admin', adminRoutes);
 
-// Fallback aliases without '/api' (ensures endpoints like /auth/register work without 404s)
+// Fallback aliases without '/api'
 app.use('/auth', authRoutes);
 app.use('/properties', propertyRoutes);
 app.use('/bookings', bookingRoutes);
@@ -74,6 +75,5 @@ if (MONGO_URI) {
       console.error('MongoDB connection error:', err);
     });
 } else {
-  // Allow server to run even if Mongo URI is loaded separately
   app.listen(PORT, () => console.log(`HouseRent API running on port ${PORT}`));
 }
