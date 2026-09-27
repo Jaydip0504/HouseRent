@@ -8,12 +8,10 @@ export default function Home() {
 
   useEffect(() => {
     // Fetch all approved properties from your backend
-    fetch("https://houserent-ayjz.onrender.com/api](https://houserent-ayjz.onrender.com/api")
-      ? fetch("https://houserent-ayjz.onrender.com/api](https://houserent-ayjz.onrender.com/api")
-          .then((res) => res.json())
-          .then((data) => setProperties(data))
-          .catch((err) => console.error("Error fetching properties:", err))
-      : null;
+    fetch("https://houserent-ayjz.onrender.com/api/properties")
+      .then((res) => res.json())
+      .then((data) => setProperties(data))
+      .catch((err) => console.error("Error fetching properties:", err));
   }, []);
 
   // Filter properties across ANY location or title typed by the user
