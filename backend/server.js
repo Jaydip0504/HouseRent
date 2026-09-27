@@ -1,49 +1,79 @@
-import express from "express";
-import mongoose from "mongoose";
-import cors from "cors";
-import dotenv from "dotenv";
+const express = require('express');
+const cors = require('cors');
+const mongoose = require('mongoose');
+require('dotenv').config();
 
-import authRoutes from "./routes/authRoutes.js";
-import propertyRoutes from "./routes/propertyRoutes.js";
-import bookingRoutes from "./routes/bookingRoutes.js";
-import adminRoutes from "./routes/adminRoutes.js";
-
-dotenv.config();
+// Route imports
+const authRoutes = require('./routes/authRoutes');
+const propertyRoutes = require('./routes/propertyRoutes');
+const bookingRoutes = require('./routes/bookingRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 
+// Allowed Origins for CORS (Local development + Deployed Vercel URLs)
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://house-rent-jaydip18.vercel.app',
+  process.env.CLIENT_URL
+].filter(Boolean); // removes any undefined values if process.env.CLIENT_URL is not set
+
 app.use(cors({
-  origin: process.env.CLIENT_URL || "http://localhost:5173"
+  origin: function (origin, callback) {
+    // Allow server-to-server, curl, Postman, or defined origins
+    if (!origin || allowedOrigins.includes(origin) || allowedOrigins.some(o => origin.startsWith(o))) {
+      return callback(null, true);
+    }
+    return callback(new Error(`Origin ${origin} not allowed by CORS`));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+// Body parsing middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-app.get("/", (req, res) => {
-  res.json({ message: "HouseRent API is running" });
+// Health-check / root route
+app.get('/', (req, res) => {
+  res.send('HouseRent API is running successfully');
 });
 
-app.use("/api/auth", authRoutes);
-app.use("/api/properties", propertyRoutes);
-app.use("/api/bookings", bookingRoutes);
-app.use("/api/admin", adminRoutes);
+// Primary API Routes with standard '/api' prefixes
+app.use('/api/auth', authRoutes);
+app.use('/api/properties', propertyRoutes);
+app.use('/api/bookings', bookingRoutes);
+app.use('/api/admin', adminRoutes);
 
+// Fallback aliases without '/api' (ensures endpoints like /auth/register work without 404s)
+app.use('/auth', authRoutes);
+app.use('/properties', propertyRoutes);
+app.use('/bookings', bookingRoutes);
+app.use('/admin', adminRoutes);
+
+// Global Error Handler
 app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(err.status || 500).json({
-    message: err.message || "Server error"
-  });
+  console.error('Server Error:', err.message);
+  res.status(500).json({ error: err.message || 'Internal Server Error' });
 });
 
+// Database connection & Server initialization
 const PORT = process.env.PORT || 5000;
+const MONGO_URI = process.env.MONGO_URI || process.env.MONGODB_URI;
 
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log(`HouseRent API running on http://localhost:${PORT}`);
+if (MONGO_URI) {
+  mongoose
+    .connect(MONGO_URI)
+    .then(() => {
+      console.log('Connected to MongoDB');
+      app.listen(PORT, () => console.log(`HouseRent API running on port ${PORT}`));
+    })
+    .catch((err) => {
+      console.error('MongoDB connection error:', err);
     });
-  })
-  .catch((err) => {
-    console.error("MongoDB connection failed:", err.message);
-    process.exit(1);
-  });
+} else {
+  // Allow server to run even if Mongo URI is loaded separately
+  app.listen(PORT, () => console.log(`HouseRent API running on port ${PORT}`));
+}
