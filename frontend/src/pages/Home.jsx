@@ -8,8 +8,8 @@ export default function Home() {
 
   useEffect(() => {
     // Fetch all approved properties from your backend
-    fetch("http://localhost:5000/api/properties")
-      ? fetch("http://localhost:5000/api/properties")
+    fetch("https://houserent-ayjz.onrender.com/api](https://houserent-ayjz.onrender.com/api")
+      ? fetch("https://houserent-ayjz.onrender.com/api](https://houserent-ayjz.onrender.com/api")
           .then((res) => res.json())
           .then((data) => setProperties(data))
           .catch((err) => console.error("Error fetching properties:", err))
