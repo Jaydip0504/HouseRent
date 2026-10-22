@@ -2,6 +2,10 @@
 
 A house rental management system built for a MERN stack internship project.
 
+## 📖 Project Documentation
+- 📄 [HouseRent Documentation PDF](docs/HouseRent.pdf)
+- 📌 [Phase-wise Development Details](docs/PROJECT_PHASES.md)
+
 ## Features
 - User registration and JWT login
 - Role-based User/Admin access
